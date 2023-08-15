@@ -1,0 +1,6 @@
+.logoText {
+    font-weight:600;
+    letter-spacing: 2px;
+    display: flex;
+    align-items: center;
+}
