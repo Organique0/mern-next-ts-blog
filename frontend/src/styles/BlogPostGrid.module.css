@@ -1,0 +1,9 @@
+.entry {
+    height: 100%;
+    border: none;
+}
+
+.entry:hover {
+    box-shadow: var(--bs-primary) 0px 0px 12px;
+    outline: 2px var(--bs-primary) solid;
+}

@@ -3,7 +3,7 @@ import blogPostModel from "../models/blog-post";
 
 export const getBlogPosts: RequestHandler = async (req,res) => {
     try {
-        const allBlogPosts = await blogPostModel.find().exec();
+        const allBlogPosts = await blogPostModel.find().sort({_id:-1}).exec();
 
         res.status(200).json(allBlogPosts);
     } catch (error) {
