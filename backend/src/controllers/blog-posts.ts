@@ -15,6 +15,34 @@ export const getBlogPosts: RequestHandler = async (req,res) => {
     }
 };
 
+export const getAllBlogPostSlugs: RequestHandler = async (req,res) => {
+    try {
+        const results = await blogPostModel.find().select("slug").exec();
+        const slugs = results.map((post)=>post.slug);
+        
+        res.status(200).json(slugs);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({error});
+    }
+}
+
+
+export const getBlogPostBySlug:RequestHandler = async (req,res) => {
+    try {
+        const blogPost = await blogPostModel.findOne({slug:req.params.slug}).exec();
+
+        if(!blogPost) {
+            return res.sendStatus(404);
+        }
+
+        res.status(200).json(blogPost);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({error});
+    }
+}
+
 interface BlogPostBody {
     slug: string;
     title: string;

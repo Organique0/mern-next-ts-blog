@@ -5,6 +5,8 @@ import FormInputField from "@/components/form/FormInputField";
 import MarkdownEditor from "@/components/form/MarkdownEditor";
 import { generateSlug } from "@/utils/utils";
 import LoadingButton from "@/components/LoadingButton";
+import { useRouter } from "next/router";
+import toast from "react-hot-toast";
 
 interface CreatePostFormData {
     slug: string,
@@ -16,22 +18,24 @@ interface CreatePostFormData {
 
 
 export default function CreateBlogPostPage() {
+    const router = useRouter();
     const { register, handleSubmit, formState: { errors, isSubmitting }, setValue, watch, getValues, } = useForm<CreatePostFormData>();
 
     async function onSubmit({ title, slug, summary, featuredImage, body }: CreatePostFormData) {
         try {
             await BlogApi.createBlogPost({ title, slug, summary, featuredImage: featuredImage[0], body });
-            alert("Post created");
+            toast.success("Blog post created!");
+            await router.push("/blog/" + slug);
         } catch (error) {
             console.error(error);
-            alert(error);
+            toast.error("Something went wrong (CreateBlogPostPage)");
         }
     }
 
     function generateSlugFromTitle() {
         if (getValues("slug")) return;
         const slug = generateSlug(getValues("title"));
-        setValue("slug", slug, { shouldValidate: true })
+        setValue("slug", slug, { shouldValidate: true });
     }
 
     return (
