@@ -4,7 +4,17 @@ import axiosApi from "@/network/axiosInstance";
 
 export async function getBlogPosts() {
     const response = await axiosApi.get<BlogPost[]>("/posts");
-    return response.data
+    return response.data;
+}
+
+export async function getBlogPostBySlug(slug:string) {
+    const response = await axiosApi.get<BlogPost>("/posts/post/"+slug);
+    return response.data;
+}
+
+export async function getAllBlogPostSlugs() {
+    const response = await axiosApi.get<string[]>("/posts/slugs/");
+    return response.data;
 }
 
 interface CreateBlogPostValues {
