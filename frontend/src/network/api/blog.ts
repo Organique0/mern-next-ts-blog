@@ -12,9 +12,16 @@ interface CreateBlogPostValues {
     title:string,
     summary:string,
     body:string,
+    featuredImage: File,
 }
 
 export async function createBlogPost(input:CreateBlogPostValues) {
-    const response = await axiosApi.post<BlogPost>("/posts", input);
+    const formData = new FormData();
+
+    Object.entries(input).forEach(([key,value]) => {
+        formData.append(key, value);
+    });
+
+    const response = await axiosApi.post<BlogPost>("/posts", formData);
     return response.data;
 }

@@ -11,15 +11,16 @@ interface CreatePostFormData {
     title: string,
     summary: string,
     body: string,
+    featuredImage: FileList,
 }
 
 
 export default function CreateBlogPostPage() {
     const { register, handleSubmit, formState: { errors, isSubmitting }, setValue, watch, getValues, } = useForm<CreatePostFormData>();
 
-    async function onSubmit(input: CreatePostFormData) {
+    async function onSubmit({ title, slug, summary, featuredImage, body }: CreatePostFormData) {
         try {
-            await BlogApi.createBlogPost(input);
+            await BlogApi.createBlogPost({ title, slug, summary, featuredImage: featuredImage[0], body });
             alert("Post created");
         } catch (error) {
             console.error(error);
@@ -58,6 +59,13 @@ export default function CreateBlogPostPage() {
                     placeholder="Post summary"
                     maxLength={300}
                     as="textarea"
+                    error={errors.summary}
+                />
+                <FormInputField
+                    label="Post image"
+                    register={register("featuredImage", { required: "Required" })}
+                    type="file"
+                    accept="image/png,image/jpeg"
                     error={errors.summary}
                 />
                 <MarkdownEditor
