@@ -1,3 +1,7 @@
 .small {
     font-size: 0.8rem;
 }
+
+.object-fit-cover {
+    object-fit: cover;
+}
