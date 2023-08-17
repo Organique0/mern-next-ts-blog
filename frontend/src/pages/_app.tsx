@@ -8,6 +8,7 @@ import style from "@/styles/App.module.css";
 import NavBar from '@/components/NavBar';
 import NextNProgress from "nextjs-progressbar";
 import { Toaster } from 'react-hot-toast';
+import SignUpModal from '@/components/auth/SignUpModal';
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -29,6 +30,7 @@ export default function App({ Component, pageProps }: AppProps) {
             <Component {...pageProps} />
           </Container>
         </main>
+        <SignUpModal onDismiss={() => { }} onLoginClicked={() => { }} />
       </div>
     </>
 
