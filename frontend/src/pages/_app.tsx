@@ -12,8 +12,6 @@ import { Toaster } from 'react-hot-toast';
 const inter = Inter({ subsets: ['latin'] })
 export default function App({ Component, pageProps }: AppProps) {
 
-  const { user, userLoading, userLoadingError, mutateUser } = useAuthUser();
-
   return (
     <>
       <Head>
