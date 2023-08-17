@@ -38,3 +38,23 @@ export const signUp: RequestHandler<unknown, unknown, signUpBody, unknown> = asy
         next(error);
     }
 }
+
+export const getAuthenticatedUser:RequestHandler = async (req, res, next) => {
+    const authUser = req.user;
+    try {
+        if(!authUser) throw createHttpError(401);
+
+        const user = await UserModel.findById(authUser._id).select("+email").exec();
+
+        res.status(200).json(user);
+    } catch (error) {
+        next(error);
+    }
+}
+
+export const logOut: RequestHandler = (req,res) => {
+    req.logOut(error => {
+        if (error) throw error;
+        res.sendStatus(200);
+    })
+}
