@@ -21,3 +21,12 @@ export async function login(credentials:LoginValues) {
     const response = await api.post<User>("/users/login", credentials);
     return response.data;
 }
+
+export async function getAuthenticatedUser() {
+    const response = await api.get<User>("/users/me");
+    return response.data;
+}
+
+export async function logout() {
+    await api.post("/users/logout");
+}
