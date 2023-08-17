@@ -1,19 +1,19 @@
+import NavBar from '@/components/NavBar';
+import useAuthUser from '@/hooks/useAuthUser';
+import style from "@/styles/App.module.css";
 import '@/styles/globals.scss';
 import "@/styles/utils.css";
-import type { AppProps } from 'next/app'
-import { Inter } from 'next/font/google'
-import Head from 'next/head'
-import { Container, SSRProvider } from "react-bootstrap";
-import style from "@/styles/App.module.css";
-import NavBar from '@/components/NavBar';
+import type { AppProps } from 'next/app';
+import { Inter } from 'next/font/google';
+import Head from 'next/head';
 import NextNProgress from "nextjs-progressbar";
+import { Container } from "react-bootstrap";
 import { Toaster } from 'react-hot-toast';
-import SignUpModal from '@/components/auth/SignUpModal';
-import LoginModal from '@/components/auth/LoginModal';
-
 const inter = Inter({ subsets: ['latin'] })
-
 export default function App({ Component, pageProps }: AppProps) {
+
+  const { user, userLoading, userLoadingError, mutateUser } = useAuthUser();
+
   return (
     <>
       <Head>
