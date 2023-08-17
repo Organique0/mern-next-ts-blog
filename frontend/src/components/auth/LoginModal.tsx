@@ -1,30 +1,31 @@
-import { Button, Modal } from "react-bootstrap";
 import { useForm } from "react-hook-form";
 import * as UsersApi from "@/network/api/users";
 import toast from "react-hot-toast";
+import { Button, Form, Modal } from "react-bootstrap";
 import FormInputField from "../form/FormInputField";
-import { Form } from "react-bootstrap";
 import PasswordInputField from "../form/PasswordInputField";
 import LoadingButton from "../LoadingButton";
-interface SignUpformData {
+
+interface LoginFormData {
     username: string,
-    email: string,
     password: string,
 }
 
-interface SignUpModalProps {
+interface LoginModalProps {
     onDismiss: () => void,
-    onLoginClicked: () => void,
+    onSignupClicked: () => void,
+    onForgotPasswordClicked: () => void,
+
 }
 
-export default function SignUpModal({ onDismiss, onLoginClicked }: SignUpModalProps) {
-    const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<SignUpformData>();
+export default function LoginModal({ onDismiss, onSignupClicked, onForgotPasswordClicked }: LoginModalProps) {
 
-    async function onSubmit(credentials: SignUpformData) {
+    const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<LoginFormData>();
+
+    async function onSubmit(credentials: LoginFormData) {
         try {
-            const newUser = await UsersApi.sinUp(credentials);
-            console.log(JSON.stringify(newUser));
-            toast.success("registered!");
+            const user = await UsersApi.login(credentials);
+            toast.success("logged in");
         } catch (error: any) {
             if (error.response && error.response.data) {
                 toast.error(error.response.data.error); // Print the error message
@@ -36,35 +37,39 @@ export default function SignUpModal({ onDismiss, onLoginClicked }: SignUpModalPr
     return (
         <Modal show onHide={onDismiss} centered>
             <Modal.Header closeButton>
-                <Modal.Title>Sign up</Modal.Title>
+                <Modal.Title>Login</Modal.Title>
             </Modal.Header>
             <Modal.Body>
                 <Form onSubmit={handleSubmit(onSubmit)} noValidate>
                     <FormInputField
                         register={register("username")}
                         label="Username"
-                        placeholder="username"
+                        placeholder="Username"
                         error={errors.username}
-                    />
-                    <FormInputField
-                        register={register("email")}
-                        label="Email"
-                        placeholder="email"
-                        type="email"
-                        error={errors.email}
                     />
                     <PasswordInputField
                         register={register("password")}
                         label="Password"
+                        placeholder="Password"
                         error={errors.password}
                     />
-                    <LoadingButton type="submit" isLoading={isSubmitting} className="w-100">Sign up</LoadingButton>
-                    <div className="d-flex align-items-center gap-1 justify-content-center mt-1">
-                        Already have an account?
-                        <Button variant="link">Login </Button>
-                    </div>
+                    <Button variant="link" onClick={onForgotPasswordClicked} className="d-block ms-auto mt-n2 mb-3 small">
+                        Forgot password
+                    </Button>
+                    <LoadingButton
+                        type="submit"
+                        isLoading={isSubmitting}
+                        className="w-100"
+                    >
+                        Login
+                    </LoadingButton>
                 </Form>
+                <div className="d-flex align-items-center gap-1 justify-content-center mt-1">
+                    Don&apos;t have an account yet?
+                    <Button variant="link">Sign up </Button>
+                </div>
             </Modal.Body>
+
         </Modal>
-    );
+    )
 }
