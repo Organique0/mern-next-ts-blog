@@ -8,7 +8,7 @@ import { createBlogpostSchema, getBlogPostSchema } from "../validation/blog-post
 const router = express.Router();
 
 router.get("/", validateRequestSchema(getBlogPostSchema) ,BlogPostsController.getBlogPosts);
-router.post("/", requiresAuth , featuredImageUpload.single("featuredImage"), validateRequestSchema(createBlogpostSchema) ,BlogPostsController.createBlogPost);
+router.post("/", requiresAuth , featuredImageUpload.single("featuredImage"), validateRequestSchema(createBlogpostSchema),BlogPostsController.createBlogPost);
 router.get("/post/:slug", BlogPostsController.getBlogPostBySlug)
 router.get("/slugs", BlogPostsController.getAllBlogPostSlugs);
 

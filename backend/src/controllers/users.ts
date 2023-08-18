@@ -104,7 +104,7 @@ export const updateUser :RequestHandler<unknown, unknown, UpdateUserBody, unknow
                 ...(username && {username}),
                 ...(displayName && {displayName}),
                 ...(about && {about}),
-                ...(profileImage && {profilePicUrl:env.SERVER_URL + profileImageDestPath}),
+                ...(profileImage && {profilePicUrl:env.SERVER_URL + profileImageDestPath + "?lastUpdated=" + Date.now()}),
             }
         }, { new:true }).exec();
 
