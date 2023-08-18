@@ -7,6 +7,11 @@ export async function getBlogPosts() {
     return response.data;
 }
 
+export async function getBlogPostsByUser(userId:string) {
+    const response = await axiosApi.get<BlogPost[]>(`/posts?authorId=${userId}`);
+    return response.data;
+}
+
 export async function getBlogPostBySlug(slug:string) {
     const response = await axiosApi.get<BlogPost>("/posts/post/"+slug);
     return response.data;
