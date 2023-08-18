@@ -9,23 +9,31 @@ import LoadingButton from "../LoadingButton";
 import useAuthUser from "@/hooks/useAuthUser";
 import { useState } from "react";
 import { BadRequestError, ConflictError } from "@/network/http-errors";
-interface SignUpformData {
-    username: string,
-    email: string,
-    password: string,
-}
+import * as yup from "yup";
+import { yupResolver } from "@hookform/resolvers/yup";
+import { requiredStringSchema, usernameSchema, emailSchema, passwordSchema } from "@/utils/validation";
+
+type SingUpFormData = yup.InferType<typeof validationShema>;
 
 interface SignUpModalProps {
     onDismiss: () => void,
     onLoginClicked: () => void,
 }
 
+const validationShema = yup.object({
+    username: usernameSchema.required("Required"),
+    email: emailSchema.required("Required"),
+    password: passwordSchema.required("Required"),
+})
+
 export default function SignUpModal({ onDismiss, onLoginClicked }: SignUpModalProps) {
-    const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<SignUpformData>();
+    const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<SingUpFormData>({
+        resolver: yupResolver(validationShema),
+    });
     const [errorText, setErrorText] = useState<string | null>(null);
     const { mutateUser } = useAuthUser();
 
-    async function onSubmit(credentials: SignUpformData) {
+    async function onSubmit(credentials: SingUpFormData) {
         try {
             setErrorText(null);
             const newUser = await UsersApi.sinUp(credentials);
@@ -52,20 +60,20 @@ export default function SignUpModal({ onDismiss, onLoginClicked }: SignUpModalPr
                 }
                 <Form onSubmit={handleSubmit(onSubmit)} noValidate>
                     <FormInputField
-                        register={register("username", { required: true })}
+                        register={register("username")}
                         label="Username"
                         placeholder="username"
                         error={errors.username}
                     />
                     <FormInputField
-                        register={register("email", { required: true })}
+                        register={register("email")}
                         label="Email"
                         placeholder="email"
                         type="email"
                         error={errors.email}
                     />
                     <PasswordInputField
-                        register={register("password", { required: true })}
+                        register={register("password")}
                         label="Password"
                         error={errors.password}
                     />

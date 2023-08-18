@@ -8,12 +8,9 @@ import LoadingButton from "../LoadingButton";
 import { useState } from "react";
 import { UnauthorizedError } from "@/network/http-errors";
 import useAuthUser from "@/hooks/useAuthUser";
-
-interface LoginFormData {
-    username: string,
-    password: string,
-}
-
+import * as yup from "yup";
+import { yupResolver } from "@hookform/resolvers/yup";
+import { requiredStringSchema } from "@/utils/validation";
 interface LoginModalProps {
     onDismiss: () => void,
     onSignupClicked: () => void,
@@ -21,10 +18,20 @@ interface LoginModalProps {
 
 }
 
+type LoginFormData = yup.InferType<typeof validationSchema>;
+
+const validationSchema = yup.object({
+    username: requiredStringSchema,
+    password: requiredStringSchema,
+});
+
 export default function LoginModal({ onDismiss, onSignupClicked, onForgotPasswordClicked }: LoginModalProps) {
     const { mutateUser } = useAuthUser();
     const [errorText, setErrorText] = useState<string | null>(null);
-    const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<LoginFormData>();
+
+    const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<LoginFormData>({
+        resolver: yupResolver(validationSchema),
+    });
 
     async function onSubmit(credentials: LoginFormData) {
         try {
@@ -52,13 +59,13 @@ export default function LoginModal({ onDismiss, onSignupClicked, onForgotPasswor
                 }
                 <Form onSubmit={handleSubmit(onSubmit)} noValidate>
                     <FormInputField
-                        register={register("username", { required: true })}
+                        register={register("username")}
                         label="Username"
                         placeholder="Username"
                         error={errors.username}
                     />
                     <PasswordInputField
-                        register={register("password", { required: true })}
+                        register={register("password")}
                         label="Password"
                         placeholder="Password"
                         error={errors.password}
