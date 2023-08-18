@@ -4,3 +4,8 @@
     display: flex;
     align-items: center;
 }
+
+.accountDropdown :global(.dropdown-toggle){
+    padding-top: 0;
+    padding-bottom: 0;
+}

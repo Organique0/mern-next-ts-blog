@@ -1,6 +1,9 @@
 @import "custom-theme";
 @import 'react-markdown-editor-lite/lib/index.css';
 
+:root{
+  --tooltip-box-shadow: 3px 3px 13px 4px rgba(0,0,0,0.3);
+}
 * {
   box-sizing: border-box;
   padding: 0;
@@ -26,7 +29,12 @@ h1 {
   font-weight: 600;
 }
 
-
+.dropdown-menu {
+  box-shadow: var(--tooltip-box-shadow);
+}
+.tooltip-inner {
+  box-shadow: var(--tooltip-box-shadow);
+}
 
 .rc-md-editor {
   & {

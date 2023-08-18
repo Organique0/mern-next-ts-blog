@@ -2,6 +2,7 @@ import { RequestHandler } from "express";
 import UserModel from "../models/user";
 import createHttpError from "http-errors";
 import bcrypt from "bcrypt";
+import assertIsDefined from "../utils/assertIsDefined";
 interface signUpBody {
     username: string,
     email:string,
@@ -42,7 +43,7 @@ export const signUp: RequestHandler<unknown, unknown, signUpBody, unknown> = asy
 export const getAuthenticatedUser:RequestHandler = async (req, res, next) => {
     const authUser = req.user;
     try {
-        if(!authUser) throw createHttpError(401);
+        assertIsDefined(authUser);
 
         const user = await UserModel.findById(authUser._id).select("+email").exec();
 

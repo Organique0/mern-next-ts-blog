@@ -3,13 +3,14 @@ import { formatDate } from "@/utils/utils";
 import Image from "next/image";
 import Link from "next/link";
 import { Card } from "react-bootstrap";
+import UserProfileLink from "./UserProfileLink";
 
 interface BlogPostEntryProps {
     post: BlogPost,
     className?: string,
 }
 
-export default function BlogPostEntry({ post: { slug, title, summary, featuredImageUrl, createdAt }, className }: BlogPostEntryProps) {
+export default function BlogPostEntry({ post: { slug, title, summary, featuredImageUrl, author, createdAt }, className }: BlogPostEntryProps) {
     const postLink = "/blog/" + slug;
 
     return (
@@ -27,6 +28,7 @@ export default function BlogPostEntry({ post: { slug, title, summary, featuredIm
                     <Card.Text>
                         {summary}
                     </Card.Text>
+                    <Card.Text><UserProfileLink user={author} /></Card.Text>
                     <Card.Text className="text-muted small">
                         <time dateTime={createdAt}>
                             {formatDate(createdAt)}
