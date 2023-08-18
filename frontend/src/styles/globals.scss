@@ -36,6 +36,11 @@ h1 {
   box-shadow: var(--tooltip-box-shadow);
 }
 
+.page-link {
+  margin: 0 4px;
+  border-radius: 4px;
+}
+
 .rc-md-editor {
   & {
     border-radius: 0.375rem;
