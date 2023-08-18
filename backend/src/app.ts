@@ -27,6 +27,7 @@ app.use(session(sessionConfig));
 app.use(passport.authenticate("session"));
 
 app.use("/uploads/featured-images", express.static("uploads/featured-images"));
+app.use("/uploads/profile-pictures", express.static("uploads/profile-pictures"));
 
 app.use("/posts", blogPostRoutes);
 app.use("/users", usersRouter);

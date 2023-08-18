@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import { validateBufferMIMEType } from "validate-image-type";
 import * as yup from "yup";
 
@@ -10,4 +11,6 @@ async file => {
     });
 
     return result.ok
-})
+});
+
+export const ObjectIdSchema = yup.string().test("is-objectId","${path} is not a valid ObjectId", value => !value || mongoose.Types.ObjectId.isValid(value));
