@@ -3,12 +3,12 @@ import axiosApi from "@/network/axiosInstance";
 
 
 export async function getBlogPosts(page:number = 1) {
-    const response = await axiosApi.get<BlogPostPage[]>("/posts?page="+page);
+    const response = await axiosApi.get<BlogPostPage>("/posts?page="+page);
     return response.data;
 }
 
 export async function getBlogPostsByUser(userId:string,page:number = 1) {
-    const response = await axiosApi.get<BlogPostPage[]>(`/posts?authorId=${userId}&page=${page}`);
+    const response = await axiosApi.get<BlogPostPage>(`/posts?authorId=${userId}&page=${page}`);
     return response.data;
 }
 

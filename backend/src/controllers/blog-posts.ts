@@ -10,7 +10,7 @@ import { BlogPostBody, GetBlogPostQuery } from "../validation/blog-posts";
 export const getBlogPosts: RequestHandler<unknown, unknown, unknown, GetBlogPostQuery> = async (req,res,next) => {
     const authorId = req.query.authorId;
     const page = parseInt(req.query.page || "1");
-    const pageSize = 6;
+    const pageSize = 8;
 
     const filter = authorId ? { author:authorId } : {};
 

@@ -17,8 +17,9 @@ import LoadingButton from "@/components/LoadingButton";
 import useSWR from "swr";
 import BlogPostGrid from "@/components/BlogPostGrid";
 import { NotFoundError } from "@/network/http-errors";
+import Pagination from "@/components/Pagination";
 
-export const getServerSideProps: GetServerSideProps<UserProfilePageProps> = async ({ params }) => {
+export const getServerSideProps: GetServerSideProps<ProfilePageProps> = async ({ params }) => {
     try {
         const username = params?.username?.toString();
         if (!username) throw Error("username missing");
@@ -40,6 +41,17 @@ interface UserProfilePageProps {
 }
 
 export default function UserProfilePage({ user }: UserProfilePageProps) {
+    return (
+        <UserProfile user={user} key={user._id} />
+    )
+}
+
+interface ProfilePageProps {
+    user: User,
+}
+
+
+function UserProfile({ user }: ProfilePageProps) {
     const { user: loggedInUser, mutateUser: mutateLoggedInUser } = useAuthUser();
     const [profileUser, setProfileUser] = useState(user);
     const profileUserIsLoggedInUser = (loggedInUser && (loggedInUser._id === profileUser._id)) || false;
@@ -153,16 +165,22 @@ interface UserBlogPostSectionProps {
 }
 
 function UserBlogPostSection({ user }: UserBlogPostSectionProps) {
-    const { data, isLoading, error } = useSWR(user._id, BlogApi.getBlogPostsByUser)
+    const [page, setPage] = useState(1);
+    const { data, isLoading, error } = useSWR([user._id, page, "user_posts"], ([userId, page]) => BlogApi.getBlogPostsByUser(userId, page));
+
+    const blogPosts = data?.blogPosts || [];
+    const totalPages = data?.totalPages || 0;
     return (
         <div>
             <h2>Blog posts</h2>
+            {blogPosts.length > 0 && <BlogPostGrid posts={blogPosts} />}
             <div className="d-flex flex-column align-items-center">
+                {blogPosts.length > 0 && <Pagination currentPage={page} pageCount={totalPages} onPageItemClicked={(page) => setPage(page)} className="mt-4" />}
                 {isLoading && <Spinner animation="border" />}
                 {error && <p>Blog posts could not be loaded</p>}
-                {data?.length === 0 && <p>This user has not posted anything yet</p>}
+                {!isLoading && !error && blogPosts?.length === 0 && <p>This user has not posted anything yet</p>}
+
             </div>
-            {data && <BlogPostGrid posts={data} />}
         </div>
     )
 }

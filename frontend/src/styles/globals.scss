@@ -41,6 +41,14 @@ h1 {
   border-radius: 4px;
 }
 
+.page-item.active .page-link {
+  font-weight: bold;
+}
+
+.page-link:not(:focus-visible) {
+  box-shadow: none;
+}
+
 .rc-md-editor {
   & {
     border-radius: 0.375rem;

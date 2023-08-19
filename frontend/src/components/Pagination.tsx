@@ -5,7 +5,7 @@ interface PaginationProps {
     pageCount: number,
     currentPage: number,
     onPageItemClicked: (page: number) => void,
-    className: string,
+    className?: string,
 }
 
 export default function Pagination({ pageCount, className, currentPage, onPageItemClicked }: PaginationProps) {
