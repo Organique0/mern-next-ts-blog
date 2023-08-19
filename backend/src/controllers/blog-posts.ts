@@ -103,6 +103,12 @@ export const updateBlogPost: RequestHandler<updateBlogPostParams, unknown, BlogP
     try {
         assertIsDefined(authenticatedUser);
         
+        const existingSlug = await blogPostModel.findOne({slug}).exec();
+        
+        if(existingSlug && !existingSlug._id.equals(blogPostId)){
+            throw createHttpError(409, "Slug already exists");
+        }
+
         const postToEdit = await blogPostModel.findById(blogPostId).exec();
 
         if(!postToEdit) throw createHttpError(404);
@@ -139,7 +145,6 @@ export const deleteBlogPost : RequestHandler<deleteBlogPostParams, unknown, unkn
 
         const postToDelete = await blogPostModel.findById(blogPostId).exec();
         
-
         if(!postToDelete) throw createHttpError(404);
 
         if(!postToDelete.author.equals(authenticatedUser._id)) {

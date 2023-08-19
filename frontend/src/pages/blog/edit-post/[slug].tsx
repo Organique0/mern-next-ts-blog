@@ -8,12 +8,15 @@ import useAuthUser from "@/hooks/useAuthUser";
 import { useRouter } from "next/router";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { Form, Spinner } from "react-bootstrap";
+import { Button, Form, Spinner } from "react-bootstrap";
 import FormInputField from "@/components/form/FormInputField";
 import MarkdownEditor from "@/components/form/MarkdownEditor";
 import LoadingButton from "@/components/LoadingButton";
 import { generateSlug } from "@/utils/utils";
 import toast from "react-hot-toast";
+import { useState } from "react";
+import ConfirmationModal from "@/components/ConfirmationModal";
+import useWarnUnsavedChanges from "@/hooks/useWarnUnsavedChanges";
 
 export const getServerSideProps: GetServerSideProps<EditBlogPostPageProps> = async ({ params }) => {
     try {
@@ -49,6 +52,9 @@ export default function EditBlogPostPage({ post }: EditBlogPostPageProps) {
     const { user, userLoading } = useAuthUser();
     const router = useRouter();
 
+    const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+    const [deletePending, setDeletePending] = useState(false);
+
     const { register, handleSubmit, setValue, getValues, watch, formState: { errors, isSubmitting, isDirty } } = useForm<EditPostFormData>({
         resolver: yupResolver(validationSchema),
         defaultValues: {
@@ -76,14 +82,30 @@ export default function EditBlogPostPage({ post }: EditBlogPostPageProps) {
         setValue("slug", slug, { shouldValidate: true });
     }
 
+    async function onDeleteConfirm() {
+        setShowDeleteDialog(false);
+        setDeletePending(true);
+        try {
+            console.log("deleting");
+            await BlogApi.deleteBlogPost(post._id);
+            console.log("deleted");
+            await router.push("/blog");
+        } catch (error) {
+            setDeletePending(false);
+            console.log(error);
+        }
+    }
+
+    useWarnUnsavedChanges(isDirty && !isSubmitting && !deletePending);
+
     if (userLoading) return <Spinner animation="border" className="d-block m-auto" />
 
     const userIsAuthorized = (user && user._id === post.author._id) || false;
 
-
     if (!userLoading && !userIsAuthorized) {
         return <p>You cannot edit posts from other users</p>
     }
+
 
     return (
         <div>
@@ -126,8 +148,32 @@ export default function EditBlogPostPage({ post }: EditBlogPostPageProps) {
                     watch={watch}
                     setValue={setValue}
                 />
-                <LoadingButton type="submit" isLoading={isSubmitting}>Update post</LoadingButton>
+                <div className="d-flex justify-content-between">
+                    <LoadingButton
+                        type="submit"
+                        isLoading={isSubmitting}
+                        disabled={deletePending}
+                    >
+                        Update post
+                    </LoadingButton>
+                    <Button
+                        onClick={() => setShowDeleteDialog(true)}
+                        variant="outline-danger"
+                        disabled={deletePending}
+                    >
+                        Delete post
+                    </Button>
+                </div>
             </Form>
+            <ConfirmationModal
+                show={showDeleteDialog}
+                title="Confirm delete"
+                message="Do you really want to delete this post?"
+                confirmButtonText="Delete"
+                onCancel={() => setShowDeleteDialog(false)}
+                onConfirm={onDeleteConfirm}
+                variant="danger"
+            />
         </div>
     )
 }
