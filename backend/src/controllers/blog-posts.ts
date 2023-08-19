@@ -138,6 +138,7 @@ export const deleteBlogPost : RequestHandler<deleteBlogPostParams, unknown, unkn
         assertIsDefined(authenticatedUser);
 
         const postToDelete = await blogPostModel.findById(blogPostId).exec();
+        
 
         if(!postToDelete) throw createHttpError(404);
 
@@ -151,8 +152,7 @@ export const deleteBlogPost : RequestHandler<deleteBlogPostParams, unknown, unkn
         }
 
         await postToDelete.deleteOne();
-
-        res.status(204);
+        res.sendStatus(204);
     } catch (error) {
         next(error);
     }
