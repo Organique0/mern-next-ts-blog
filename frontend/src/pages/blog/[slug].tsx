@@ -7,6 +7,8 @@ import Link from "next/link";
 import { formatDate } from "@/utils/utils";
 import Image from "next/image";
 import { NotFoundError } from "@/network/http-errors";
+import useAuthUser from "@/hooks/useAuthUser";
+import { MdEditSquare } from "react-icons/md";
 
 export const getStaticPaths: GetStaticPaths = async () => {
     const slugs = await BlogApi.getAllBlogPostSlugs();
@@ -40,7 +42,8 @@ interface BlogPostPage {
     post: BlogPost,
 }
 
-export default function BlogPostPage({ post: { _id, slug, title, summary, body, featuredImageUrl, createdAt, updatedAt } }: BlogPostPage) {
+export default function BlogPostPage({ post: { _id, slug, author, title, summary, body, featuredImageUrl, createdAt, updatedAt } }: BlogPostPage) {
+    const { user } = useAuthUser();
 
     const createdUpdatedText = updatedAt > createdAt
         ? <>updated <time dateTime={updatedAt}>{formatDate(updatedAt)}</time></>
@@ -54,8 +57,19 @@ export default function BlogPostPage({ post: { _id, slug, title, summary, body, 
             </Head>
 
             <div className={styles.container}>
-                <div className="mb-4">
-                    <Link href="/blog">Back to blogs</Link>
+                <div className="d-flex flex-row">
+                    <div className="mb-4 ">
+                        <Link href="/blog">Back to blogs</Link>
+                    </div>
+                    {user?._id === author._id &&
+                        <div style={{ marginLeft: "auto" }}>
+                            <Link href={"/blog/edit-post/" + slug} className="btn btn-outline-primary align-items-center gap-2 flex align-items-center">
+                                <MdEditSquare />
+                                Edit post
+                            </Link>
+                        </div>
+
+                    }
                 </div>
                 <article>
                     <div className="d-flex flex-column align-items-center">
@@ -70,7 +84,7 @@ export default function BlogPostPage({ post: { _id, slug, title, summary, body, 
                         {body}
                     </div>
                 </article>
-            </div>
+            </div >
         </>
     )
 }

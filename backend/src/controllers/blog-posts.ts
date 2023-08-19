@@ -5,7 +5,8 @@ import mongoose from "mongoose";
 import sharp from "sharp";
 import env from "../env";
 import createHttpError from "http-errors";
-import { BlogPostBody, GetBlogPostQuery } from "../validation/blog-posts";
+import fs from "fs";
+import { BlogPostBody, GetBlogPostQuery, deleteBlogPostParams, updateBlogPostParams } from "../validation/blog-posts";
 
 export const getBlogPosts: RequestHandler<unknown, unknown, unknown, GetBlogPostQuery> = async (req,res,next) => {
     const authorId = req.query.authorId;
@@ -88,6 +89,70 @@ export const createBlogPost: RequestHandler<unknown, unknown, BlogPostBody, unkn
         });
 
         res.status(201).json(newPost);
+    } catch (error) {
+        next(error);
+    }
+}
+
+export const updateBlogPost: RequestHandler<updateBlogPostParams, unknown, BlogPostBody, unknown> = async (req, res, next) => {
+    const {blogPostId} = req.params;
+    const { slug, title, summary, body} = req.body;
+    const featuredImage = req.file;
+    const authenticatedUser = req.user;
+
+    try {
+        assertIsDefined(authenticatedUser);
+        
+        const postToEdit = await blogPostModel.findById(blogPostId).exec();
+
+        if(!postToEdit) throw createHttpError(404);
+
+        if(!postToEdit.author.equals(authenticatedUser._id)) {
+            throw createHttpError(401);
+        }
+
+        postToEdit.slug = slug;
+        postToEdit.title = title;
+        postToEdit.summary = summary;
+        postToEdit.body = body;
+
+        if(featuredImage) {
+            const featuredImageDestinationPath = "/uploads/featured-images/" + blogPostId + ".png";
+            await sharp(featuredImage.buffer).resize(700,450).toFile("./" + featuredImageDestinationPath);
+            postToEdit.featuredImageUrl = env.SERVER_URL + featuredImageDestinationPath + "?lastupdated=" + Date.now();
+        }
+
+        await postToEdit.save();
+
+        res.sendStatus(200);
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const deleteBlogPost : RequestHandler<deleteBlogPostParams, unknown, unknown, unknown> = async (req,res,next) => {
+    const {blogPostId} = req.params;
+    const authenticatedUser = req.user;
+
+    try {
+        assertIsDefined(authenticatedUser);
+
+        const postToDelete = await blogPostModel.findById(blogPostId).exec();
+
+        if(!postToDelete) throw createHttpError(404);
+
+        if(!postToDelete.author.equals(authenticatedUser._id)) {
+            throw createHttpError(401);
+        }
+
+        if(postToDelete.featuredImageUrl.startsWith(env.SERVER_URL)) {
+            const imagePath = postToDelete.featuredImageUrl.split(env.SERVER_URL)[1].split("?")[0];
+            fs.unlinkSync("."+imagePath);
+        }
+
+        await postToDelete.deleteOne();
+
+        res.status(204);
     } catch (error) {
         next(error);
     }
