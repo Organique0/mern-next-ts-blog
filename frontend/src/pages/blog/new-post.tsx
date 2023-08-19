@@ -1,4 +1,4 @@
-import { Button, Form } from "react-bootstrap";
+import { Button, Form, Spinner } from "react-bootstrap";
 import { useForm } from "react-hook-form";
 import * as BlogApi from "@/network/api/blog";
 import FormInputField from "@/components/form/FormInputField";
@@ -10,6 +10,8 @@ import toast from "react-hot-toast";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { requiredFileSchema, requiredStringSchema, slugSchema } from "@/utils/validation";
+import useAuthUser from "@/hooks/useAuthUser";
+import useWarnUnsavedChanges from "@/hooks/useWarnUnsavedChanges";
 
 const validationSchema = yup.object({
     slug: slugSchema.required("Required"),
@@ -21,8 +23,9 @@ const validationSchema = yup.object({
 type CreatePostFormData = yup.InferType<typeof validationSchema>
 
 export default function CreateBlogPostPage() {
+    const { user, userLoading } = useAuthUser();
     const router = useRouter();
-    const { register, handleSubmit, formState: { errors, isSubmitting }, setValue, watch, getValues, } = useForm<CreatePostFormData>({
+    const { register, handleSubmit, formState: { errors, isSubmitting, isDirty }, setValue, watch, getValues, } = useForm<CreatePostFormData>({
         resolver: yupResolver(validationSchema),
     });
 
@@ -42,6 +45,14 @@ export default function CreateBlogPostPage() {
         const slug = generateSlug(getValues("title"));
         setValue("slug", slug, { shouldValidate: true });
     }
+
+
+    useWarnUnsavedChanges(isDirty && !isSubmitting);
+
+    if (!userLoading && !user) {
+        router.push("/");
+    }
+    if (userLoading) return <Spinner animation="border" className="d-block m-auto" />
 
     return (
         <div>
