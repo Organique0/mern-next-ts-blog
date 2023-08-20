@@ -17,6 +17,7 @@ import toast from "react-hot-toast";
 import { useState } from "react";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import useWarnUnsavedChanges from "@/hooks/useWarnUnsavedChanges";
+import { AxiosError } from "axios";
 
 export const getServerSideProps: GetServerSideProps<EditBlogPostPageProps> = async ({ params }) => {
     try {
@@ -70,9 +71,8 @@ export default function EditBlogPostPage({ post }: EditBlogPostPageProps) {
             await BlogApi.updateBlogPost(post._id, { title, slug, summary, featuredImage: featuredImage?.item(0) || undefined, body });
             toast.success("Blog post updated!");
             await router.push("/blog/" + slug);
-        } catch (error) {
-            console.error(error);
-            toast.error("Something went wrong (UpdateBlogPostPage)");
+        } catch (error: any) {
+            toast.error(error.message);
         }
     }
 
@@ -86,13 +86,12 @@ export default function EditBlogPostPage({ post }: EditBlogPostPageProps) {
         setShowDeleteDialog(false);
         setDeletePending(true);
         try {
-            console.log("deleting");
             await BlogApi.deleteBlogPost(post._id);
-            console.log("deleted");
+            toast.success("Blog post deleted!");
             await router.push("/blog");
-        } catch (error) {
+        } catch (error: any) {
             setDeletePending(false);
-            console.log(error);
+            toast.error(error.message);
         }
     }
 

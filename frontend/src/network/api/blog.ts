@@ -1,5 +1,7 @@
 import { BlogPost, BlogPostPage } from "@/models/blogPost";
 import axiosApi from "@/network/axiosInstance";
+import { AxiosError } from "axios";
+import toast from "react-hot-toast";
 
 
 export async function getBlogPosts(page:number = 1) {
@@ -56,10 +58,20 @@ export async function updateBlogPost(blogPostId:string, input:UpdateBlogPostValu
         if(value!==undefined) formData.append(key, value);
     });
 
-    await axiosApi.patch("/posts/"+blogPostId, formData);
+    try {
+        await axiosApi.patch("/posts/"+blogPostId, formData);
+    } catch (error:any) {
+        throw new Error(error);
+    }
 }
 
 export async function deleteBlogPost(blogPostId:string) {
-    await axiosApi.delete("/posts/"+blogPostId);
+    try {
+        await axiosApi.delete("/posts/"+blogPostId);
+    } catch (error:any) {
+        throw new Error(error);
+    }
+    
+    
 }
 
