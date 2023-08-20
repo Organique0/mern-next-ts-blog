@@ -20,6 +20,9 @@ Some other tutorial would take shortcuts and rely to much on external services l
 But here the image uploading is done mostly by hand and the images are actually hosted on my server.
 Which is pretty cool if you ask me.
 
+#########################################
+WARNING!!! DO NOT CONTINUE
+#########################################
 I just wish that one day I will be good enough to create a project like this one by my self.
 The project seems pretty basic, but I think that it is the most well done one.
 I am getting a bit better at Typescript but still strugling at the same time.
