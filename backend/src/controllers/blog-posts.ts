@@ -7,6 +7,7 @@ import env from "../env";
 import createHttpError from "http-errors";
 import fs from "fs";
 import { BlogPostBody, GetBlogPostQuery, deleteBlogPostParams, updateBlogPostParams } from "../validation/blog-posts";
+import axios from "axios";
 
 export const getBlogPosts: RequestHandler<unknown, unknown, unknown, GetBlogPostQuery> = async (req,res,next) => {
     const authorId = req.query.authorId;
@@ -130,6 +131,8 @@ export const updateBlogPost: RequestHandler<updateBlogPostParams, unknown, BlogP
 
         await postToEdit.save();
 
+        await axios.get(env.FRONTEND_URL+`/api/revalidate-post/${slug}?secret=${env.POST_REVALIDATION_KEY}`);
+
         res.sendStatus(200);
     } catch (error) {
         next(error);
@@ -157,6 +160,9 @@ export const deleteBlogPost : RequestHandler<deleteBlogPostParams, unknown, unkn
         }
 
         await postToDelete.deleteOne();
+        //because we are using getStaticProps we need to make a request to the frontend to update posts after deletion or update
+        await axios.get(env.FRONTEND_URL+`/api/revalidate-post/${postToDelete.slug}?secret=${env.POST_REVALIDATION_KEY}`);
+
         res.sendStatus(204);
     } catch (error) {
         next(error);
