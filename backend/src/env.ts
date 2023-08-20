@@ -6,6 +6,8 @@ const env = cleanEnv(process.env,{
     FRONTEND_URL: str(),
     SERVER_URL: str(),
     SESSION_SECRET: str(),
+    POST_REVALIDATION_KEY:str(),
+
 });
 
 export default env;

@@ -9,6 +9,7 @@ import Image from "next/image";
 import { NotFoundError } from "@/network/http-errors";
 import useAuthUser from "@/hooks/useAuthUser";
 import { MdEditSquare } from "react-icons/md";
+import useSWR from "swr";
 
 export const getStaticPaths: GetStaticPaths = async () => {
     const slugs = await BlogApi.getAllBlogPostSlugs();
@@ -26,7 +27,7 @@ export const getStaticProps: GetStaticProps<BlogPostPage> = async ({ params }) =
         if (!slug) throw Error("slug is undefined");
 
         const post = await BlogApi.getBlogPostBySlug(slug);
-        return { props: { post } };
+        return { props: { fallbackPost: post } };
     } catch (error) {
         if (error instanceof NotFoundError) {
             return { notFound: true }
@@ -39,11 +40,15 @@ export const getStaticProps: GetStaticProps<BlogPostPage> = async ({ params }) =
 
 
 interface BlogPostPage {
-    post: BlogPost,
+    fallbackPost: BlogPost,
 }
 
-export default function BlogPostPage({ post: { _id, slug, author, title, summary, body, featuredImageUrl, createdAt, updatedAt } }: BlogPostPage) {
+export default function BlogPostPage({ fallbackPost }: BlogPostPage) {
     const { user } = useAuthUser();
+
+    const { data: blogPost } = useSWR(fallbackPost.slug, BlogApi.getBlogPostBySlug, { revalidateOnFocus: false });
+
+    const { slug, title, summary, body, featuredImageUrl, author, createdAt, updatedAt } = blogPost || fallbackPost;
 
     const createdUpdatedText = updatedAt > createdAt
         ? <>updated <time dateTime={updatedAt}>{formatDate(updatedAt)}</time></>

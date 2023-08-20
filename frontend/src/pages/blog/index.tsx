@@ -52,7 +52,7 @@ export default function BlogPage({ data: { blogPosts, page, totalPages } }: Blog
                 {blogPosts.length > 0 && <BlogPostGrid posts={blogPosts} />}
                 <div className="d-flex flex-column align-items-center">
                     {blogPosts.length === 0 && <p>No blog posts found</p>}
-                    {blogPosts.length > 1 &&
+                    {blogPosts.length > 0 &&
                         <Pagination
                             currentPage={page}
                             pageCount={totalPages}
