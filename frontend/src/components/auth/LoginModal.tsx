@@ -11,6 +11,7 @@ import useAuthUser from "@/hooks/useAuthUser";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { requiredStringSchema } from "@/utils/validation";
+import SocialSignInSection from "./SocialSignInSection";
 interface LoginModalProps {
     onDismiss: () => void,
     onSignupClicked: () => void,
@@ -81,6 +82,8 @@ export default function LoginModal({ onDismiss, onSignupClicked, onForgotPasswor
                         Login
                     </LoadingButton>
                 </Form>
+                <hr />
+                <SocialSignInSection />
                 <div className="d-flex align-items-center gap-1 justify-content-center mt-1">
                     Don&apos;t have an account yet?
                     <Button variant="link" onClick={onSignupClicked}>Sign up </Button>

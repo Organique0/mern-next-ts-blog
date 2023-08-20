@@ -12,6 +12,7 @@ import { BadRequestError, ConflictError } from "@/network/http-errors";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { requiredStringSchema, usernameSchema, emailSchema, passwordSchema } from "@/utils/validation";
+import SocialSignInSection from "./SocialSignInSection";
 
 type SingUpFormData = yup.InferType<typeof validationShema>;
 
@@ -78,11 +79,14 @@ export default function SignUpModal({ onDismiss, onLoginClicked }: SignUpModalPr
                         error={errors.password}
                     />
                     <LoadingButton type="submit" isLoading={isSubmitting} className="w-100">Sign up</LoadingButton>
-                    <div className="d-flex align-items-center gap-1 justify-content-center mt-1">
-                        Already have an account?
-                        <Button variant="link" onClick={onLoginClicked}>Login </Button>
-                    </div>
                 </Form>
+                <hr />
+                <SocialSignInSection />
+                <div className="d-flex align-items-center gap-1 justify-content-center mt-1">
+                    Already have an account?
+                    <Button variant="link" onClick={onLoginClicked}>Login </Button>
+                </div>
+
             </Modal.Body>
         </Modal>
     );

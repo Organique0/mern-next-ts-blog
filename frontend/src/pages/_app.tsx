@@ -6,11 +6,15 @@ import "@/styles/utils.css";
 import type { AppProps } from 'next/app';
 import { Inter } from 'next/font/google';
 import Head from 'next/head';
+import { useRouter } from 'next/router';
 import NextNProgress from "nextjs-progressbar";
+import { useEffect } from 'react';
 import { Container } from "react-bootstrap";
 import { Toaster } from 'react-hot-toast';
 const inter = Inter({ subsets: ['latin'] })
+
 export default function App({ Component, pageProps }: AppProps) {
+  useOnboarding();
 
   return (
     <>
@@ -33,6 +37,15 @@ export default function App({ Component, pageProps }: AppProps) {
     </>
 
   )
+}
 
+function useOnboarding() {
+  const { user } = useAuthUser();
+  const router = useRouter();
 
+  useEffect(() => {
+    if (user && !user.username && router.pathname !== "/onboarding") {
+      router.push("/onboarding?returnTo=" + router.asPath);
+    }
+  }, [user, router]);
 }
