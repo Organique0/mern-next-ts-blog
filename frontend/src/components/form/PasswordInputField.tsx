@@ -20,9 +20,10 @@ export default function PasswordInputField({ register, label, error, ...props }:
             type={showPassword ? "text" : "password"}
             inputGroupElement={
                 <Button
-                    className="d-flex align-items-center"
+                    className="d-flex align-items-center rounded-end-2 border-white"
                     onClick={() => setShowPassword(!showPassword)}
                     id={register.name + "-toggle-visibility-button"}
+                    variant="secondary"
                 >
                     {showPassword ? <FaEyeSlash /> : <FaEye />}
                 </Button>
