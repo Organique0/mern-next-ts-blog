@@ -1,4 +1,5 @@
 import NavBar from '@/components/NavBar';
+import AuthModalsProvider from '@/components/auth/AuthModalsProvider';
 import useAuthUser from '@/hooks/useAuthUser';
 import style from "@/styles/App.module.css";
 import '@/styles/globals.scss';
@@ -27,12 +28,14 @@ export default function App({ Component, pageProps }: AppProps) {
       <div className={inter.className}>
         <Toaster />
         <NextNProgress color='#F8C7CC' />
-        <NavBar />
-        <main>
-          <Container className={style.pageContainer}>
-            <Component {...pageProps} />
-          </Container>
-        </main>
+        <AuthModalsProvider>
+          <NavBar />
+          <main>
+            <Container className={style.pageContainer}>
+              <Component {...pageProps} />
+            </Container>
+          </main>
+        </AuthModalsProvider>
       </div>
     </>
 
