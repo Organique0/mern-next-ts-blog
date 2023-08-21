@@ -6,7 +6,7 @@ import FormInputField from "../form/FormInputField";
 import PasswordInputField from "../form/PasswordInputField";
 import LoadingButton from "../LoadingButton";
 import { useState } from "react";
-import { UnauthorizedError } from "@/network/http-errors";
+import { TooManyRequestError, UnauthorizedError } from "@/network/http-errors";
 import useAuthUser from "@/hooks/useAuthUser";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -44,8 +44,11 @@ export default function LoginModal({ onDismiss, onSignupClicked, onForgotPasswor
         } catch (error) {
             if (error instanceof UnauthorizedError) {
                 setErrorText("invalid credentials");
-            } else {
-
+            } else if (error instanceof TooManyRequestError) {
+                setErrorText("Too many requests. Please wait. ")
+            }
+            else {
+                console.log(error);
             }
         }
     }
