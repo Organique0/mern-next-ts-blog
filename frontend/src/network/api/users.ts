@@ -17,6 +17,22 @@ export async function requestEmailVerificationCode(email:string) {
     await api.post("/users/verification-code",{email});
 }
 
+interface ResetPasswordValues {
+    email:string,
+    password:string,
+    verificationCode:string,
+}
+
+export async function resetPassword(credentials:ResetPasswordValues) {
+    const response = await api.post<User>("/users/reset-password", credentials);
+    return response.data;
+}
+
+export async function requestPassResetCode(email:string) {
+    await api.post("/users/reset-password-code",{email});
+    
+}
+
 interface LoginValues {
     username:string,
     password:string,

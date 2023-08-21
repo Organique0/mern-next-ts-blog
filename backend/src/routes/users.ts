@@ -3,7 +3,7 @@ import * as UsersController from "../controllers/users";
 import passport from "passport";
 import requiresAuth from "../middleware/requiresAuth";
 import validateRequestSchema from "../middleware/validateRequestSchema";
-import { requestVerificationCodeSchema, signUpSchema, updateUserSchema } from "../validation/users";
+import { passResetSchema, requestVerificationCodeSchema, signUpSchema, updateUserSchema } from "../validation/users";
 import { profileImageUpload } from "../middleware/image-upload";
 import env from "../env";
 import setSessionReturn from "../middleware/setSessionReturn";
@@ -14,6 +14,8 @@ router.patch("/me", requiresAuth, profileImageUpload.single("profileImage"), val
 router.get("/me",requiresAuth, UsersController.getAuthenticatedUser);
 router.post("/signup", validateRequestSchema(signUpSchema), UsersController.signUp);
 router.post("/verification-code", validateRequestSchema(requestVerificationCodeSchema), UsersController.requestVerificationCode);
+router.post("/reset-password-code", validateRequestSchema(requestVerificationCodeSchema), UsersController.requestPasswordResetCode);
+router.post("/reset-password", validateRequestSchema(passResetSchema), UsersController.resetPassword);
 router.get("/login/google", setSessionReturn, passport.authenticate("google"));
 router.get("/login/github", setSessionReturn, passport.authenticate("github"));
 router.get("/oauth2/redirect/google", passport.authenticate("google",{

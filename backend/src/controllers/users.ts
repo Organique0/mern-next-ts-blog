@@ -3,12 +3,14 @@ import UserModel from "../models/user";
 import createHttpError from "http-errors";
 import bcrypt from "bcrypt";
 import assertIsDefined from "../utils/assertIsDefined";
-import { RequestVerificationCodeBody, UpdateUserBody } from "../validation/users";
+import { RequestVerificationCodeBody, UpdateUserBody, passResetBody } from "../validation/users";
 import sharp from "sharp";
 import env from "../env";
 import crypto from "crypto";
 import EmailVerToken from "../models/email-ver-token";
 import * as Email from "../utils/email";
+import passResetToken from "../models/passResetToken";
+import { destroyAllActiveSessionsForUser } from "../utils/auth";
 interface signUpBody {
     username: string,
     email:string,
@@ -23,6 +25,64 @@ export const getUserByUsername:RequestHandler = async (req,res,next) => {
         if(!user) throw createHttpError(404, "User not found");
 
         res.status(200).json(user);
+    } catch (error) {
+        next(error);
+    }
+}
+
+export const requestPasswordResetCode:RequestHandler<unknown,unknown,RequestVerificationCodeBody,unknown> = async (req,res,next) => {
+    const {email} = req.body;
+    try {
+        const user = await UserModel.findOne({email}).collation({locale:"en",strength:2}).exec();
+
+        if(!user) {
+            throw createHttpError(404, "A user with this email does not exist");
+        }
+        const verificationCode = crypto.randomInt(100000, 999999).toString();
+        await passResetToken.create({email,verificationCode});
+
+        await Email.sendPassResetCode(email,verificationCode);
+
+        res.sendStatus(200);
+
+    } catch (error) {
+        next(error);
+    }
+}
+
+export const resetPassword: RequestHandler<unknown,unknown,passResetBody, unknown> = async (req, res, next) => {
+    const {email, password:newPasswordRaw, verificationCode} = req.body;
+    try {
+        const existingUser = await UserModel.findOne({email}).select("+email").collation({locale:"en", strength:2}).exec();
+
+        if(!existingUser) {
+            throw createHttpError(404,"User not found");
+        }
+
+        const passwordResetToken = await passResetToken.findOne({email, verificationCode}).exec();
+
+        if(!passwordResetToken) {
+            throw createHttpError(400, "verification code incorrect or expired");
+        } else {
+            await passwordResetToken.deleteOne();
+        }
+
+        await destroyAllActiveSessionsForUser(existingUser._id.toString());
+
+        const newPasswordHashed = await bcrypt.hash(newPasswordRaw, 10);
+
+        existingUser.password = newPasswordHashed;
+
+        await existingUser.save();
+
+        const user = existingUser.toObject();
+        delete user.password;
+
+        req.logIn(user,error => {
+            if(error) throw error;
+            res.status(200).json(user);
+        });
+
     } catch (error) {
         next(error);
     }

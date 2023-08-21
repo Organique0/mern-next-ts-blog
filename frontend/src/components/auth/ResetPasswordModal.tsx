@@ -1,36 +1,35 @@
-import { Alert, Button, Modal } from "react-bootstrap";
-import { useForm } from "react-hook-form";
-import * as UsersApi from "@/network/api/users";
-import toast from "react-hot-toast";
-import FormInputField from "../form/FormInputField";
-import { Form } from "react-bootstrap";
-import PasswordInputField from "../form/PasswordInputField";
-import LoadingButton from "../LoadingButton";
 import useAuthUser from "@/hooks/useAuthUser";
 import useCountdown from "@/hooks/useCountdown";
-import { useState } from "react";
-import { BadRequestError, ConflictError } from "@/network/http-errors";
-import * as yup from "yup";
+import { emailSchema, passwordSchema, requiredStringSchema } from "@/utils/validation";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { requiredStringSchema, usernameSchema, emailSchema, passwordSchema } from "@/utils/validation";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import * as yup from "yup";
+import * as UsersApi from "@/network/api/users";
+import toast from "react-hot-toast";
+import { BadRequestError, ConflictError, NotFoundError } from "@/network/http-errors";
+import { Modal, Alert, Form, Button } from "react-bootstrap";
+import LoadingButton from "../LoadingButton";
+import FormInputField from "../form/FormInputField";
+import PasswordInputField from "../form/PasswordInputField";
 import SocialSignInSection from "./SocialSignInSection";
 
-type SingUpFormData = yup.InferType<typeof validationSchema>;
-
-interface SignUpModalProps {
-    onDismiss: () => void,
-    onLoginClicked: () => void,
-}
 
 const validationSchema = yup.object({
-    username: usernameSchema.required("Required"),
     email: emailSchema.required("Required"),
     password: passwordSchema.required("Required"),
     verificationCode: requiredStringSchema,
-})
+});
 
-export default function SignUpModal({ onDismiss, onLoginClicked }: SignUpModalProps) {
-    const { register, handleSubmit, trigger, getValues, formState: { errors, isSubmitting } } = useForm<SingUpFormData>({
+type ResetPasswordFormData = yup.InferType<typeof validationSchema>;
+
+interface ResetPasswordResetProps {
+    onDismiss: () => void,
+    onSignUpClicked: () => void,
+}
+
+export default function ResetPasswordModal({ onDismiss, onSignUpClicked }: ResetPasswordResetProps) {
+    const { register, handleSubmit, trigger, getValues, formState: { errors, isSubmitting } } = useForm<ResetPasswordFormData>({
         resolver: yupResolver(validationSchema),
     });
 
@@ -41,14 +40,14 @@ export default function SignUpModal({ onDismiss, onLoginClicked }: SignUpModalPr
     const [errorText, setErrorText] = useState<string | null>(null);
     const { mutateUser } = useAuthUser();
 
-    async function onSubmit(credentials: SingUpFormData) {
+    async function onSubmit(credentials: ResetPasswordFormData) {
         try {
             setErrorText(null);
             setShowVerCodeSentText(false);
-            const newUser = await UsersApi.sinUp(credentials);
-            mutateUser(newUser);
+            const user = await UsersApi.resetPassword(credentials);
+            mutateUser(user);
             onDismiss();
-            toast.success("registered!");
+            toast.success("Password reset successfull");
         } catch (error) {
             if (error instanceof ConflictError || error instanceof BadRequestError) {
                 setErrorText(error.message);
@@ -57,7 +56,6 @@ export default function SignUpModal({ onDismiss, onLoginClicked }: SignUpModalPr
             }
         }
     }
-
     async function requestVerificationCode() {
         const validEmail = await trigger("email");
         if (!validEmail) return;
@@ -68,12 +66,10 @@ export default function SignUpModal({ onDismiss, onLoginClicked }: SignUpModalPr
         startCooldown(60);
 
         try {
-            console.log("sending");
-            await UsersApi.requestEmailVerificationCode(emailInput);
-            console.log("send");
+            await UsersApi.requestPassResetCode(emailInput);
             setShowVerCodeSentText(true);
         } catch (error) {
-            if (error instanceof ConflictError) {
+            if (error instanceof NotFoundError) {
                 setErrorText(error.message);
             } else {
                 console.error(error);
@@ -85,7 +81,7 @@ export default function SignUpModal({ onDismiss, onLoginClicked }: SignUpModalPr
     return (
         <Modal show onHide={onDismiss} centered>
             <Modal.Header closeButton>
-                <Modal.Title>Sign up</Modal.Title>
+                <Modal.Title>Reset password</Modal.Title>
             </Modal.Header>
             <Modal.Body>
                 {errorText &&
@@ -100,13 +96,6 @@ export default function SignUpModal({ onDismiss, onLoginClicked }: SignUpModalPr
                 <Form onSubmit={handleSubmit(onSubmit)} noValidate>
                     <FormInputField
                         className="rounded"
-                        register={register("username")}
-                        label="Username"
-                        placeholder="username"
-                        error={errors.username}
-                    />
-                    <FormInputField
-                        className="rounded"
                         register={register("email")}
                         label="Email"
                         placeholder="email"
@@ -115,8 +104,9 @@ export default function SignUpModal({ onDismiss, onLoginClicked }: SignUpModalPr
                     />
                     <PasswordInputField
                         register={register("password")}
-                        label="Password"
+                        label="New password"
                         error={errors.password}
+                        placeholder="New password"
                     />
                     <FormInputField
                         register={register("verificationCode")}
@@ -137,16 +127,15 @@ export default function SignUpModal({ onDismiss, onLoginClicked }: SignUpModalPr
                             </Button>
                         }
                     />
-                    <LoadingButton type="submit" isLoading={isSubmitting} className="w-100">Sign up</LoadingButton>
+                    <LoadingButton type="submit" isLoading={isSubmitting} className="w-100">Log in</LoadingButton>
                 </Form>
                 <hr />
-                <SocialSignInSection />
                 <div className="d-flex align-items-center gap-1 justify-content-center mt-1">
-                    Already have an account?
-                    <Button variant="link" onClick={onLoginClicked}>Login </Button>
+                    Don&apos;t have an account yet?
+                    <Button variant="link" onClick={onSignUpClicked}>Sign up </Button>
                 </div>
 
             </Modal.Body>
         </Modal>
-    );
+    )
 }

@@ -18,3 +18,17 @@ export async function sendVerificationCode(toEmail:string, verificationCode:stri
         html: `<p>This verification code will expire in 10 minutes</p><strong>${verificationCode}</strong>`
     })
 }
+
+export async function sendPassResetCode(toEmail:string, verificationCode:string) {
+    await transporter.sendMail({
+        from:"noreply@blogApp.com",
+        to: toEmail,
+        subject:"Your password reset code for Blog App",
+        html: 
+        `
+        <p>A password reset request has been send for this account. Use this code to reset your password. It will expire in 10 minutes.</p>
+        <p><strong>${verificationCode}</strong></p>
+        If you did not request a password reset, ignore this email.
+        `
+    })
+}
