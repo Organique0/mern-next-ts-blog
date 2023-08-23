@@ -10,6 +10,7 @@ import { NotFoundError } from "@/network/http-errors";
 import useAuthUser from "@/hooks/useAuthUser";
 import { MdEditSquare } from "react-icons/md";
 import useSWR from "swr";
+import BlogCommentSection from "@/components/comments/BlogCommentSection";
 
 export const getStaticPaths: GetStaticPaths = async () => {
     const slugs = await BlogApi.getAllBlogPostSlugs();
@@ -48,7 +49,7 @@ export default function BlogPostPage({ fallbackPost }: BlogPostPage) {
 
     const { data: blogPost } = useSWR(fallbackPost.slug, BlogApi.getBlogPostBySlug, { revalidateOnFocus: false });
 
-    const { slug, title, summary, body, featuredImageUrl, author, createdAt, updatedAt } = blogPost || fallbackPost;
+    const { slug, title, summary, body, featuredImageUrl, author, createdAt, updatedAt, _id } = blogPost || fallbackPost;
 
     const createdUpdatedText = updatedAt > createdAt
         ? <>updated <time dateTime={updatedAt}>{formatDate(updatedAt)}</time></>
@@ -89,6 +90,8 @@ export default function BlogPostPage({ fallbackPost }: BlogPostPage) {
                         {body}
                     </div>
                 </article>
+                <hr />
+                <BlogCommentSection blogPostId={_id} />
             </div >
         </>
     )
