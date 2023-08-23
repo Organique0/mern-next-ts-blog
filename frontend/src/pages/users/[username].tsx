@@ -120,13 +120,14 @@ interface UpdateUserProfileSectionProps {
 }
 
 function UpdateUserProfileSection({ onUserUpdated }: UpdateUserProfileSectionProps) {
-    const { register, handleSubmit, formState: { isSubmitting } } = useForm<UpdateUserProfileFormData>();
+    const { register, handleSubmit, formState: { isSubmitting }, reset } = useForm<UpdateUserProfileFormData>();
 
     async function onSubmit({ displayName, about, profileImage }: UpdateUserProfileFormData) {
         if (!displayName && !about && (!profileImage || profileImage.length === 0)) return;
         try {
             const updatedUser = await UsersApi.updateUser({ displayName, about, profileImage: profileImage?.item(0) || undefined });
             onUserUpdated(updatedUser);
+            reset();
         } catch (error) {
             console.error(error);
         }
@@ -146,7 +147,7 @@ function UpdateUserProfileSection({ onUserUpdated }: UpdateUserProfileSectionPro
                     label="About me"
                     placeholder="Write a few thing about you"
                     as="textarea"
-                    maxLength={20}
+                    maxLength={500}
                 />
                 <FormInputField
                     register={register("profileImage")}

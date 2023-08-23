@@ -7,29 +7,29 @@ export const passwordSchema = yup.string().matches(/^(?!.* )/).min(6);
 export const signUpSchema = yup.object({
     body: yup.object({
         username: usernameSchema.required(),
-        email:emailSchema.required(),
-        password:passwordSchema.required(),
-        verificationCode:yup.string().required(),
+        email: emailSchema.required(),
+        password: passwordSchema.required(),
+        verificationCode: yup.string().required(),
     })
 });
 
 export type SignUpBody = yup.InferType<typeof signUpSchema>["body"];
 
 export const updateUserSchema = yup.object({
-    body:yup.object({
-                username: usernameSchema,
-                displayName: yup.string().max(20),
-                about: yup.string().max(160),
+    body: yup.object({
+        username: usernameSchema,
+        displayName: yup.string().max(20),
+        about: yup.string().max(500),
 
     }),
-    file:imageFileSchema,
+    file: imageFileSchema,
 })
 
 export type UpdateUserBody = yup.InferType<typeof updateUserSchema>["body"];
 
 export const requestVerificationCodeSchema = yup.object({
     body: yup.object({
-        email:emailSchema.required(),
+        email: emailSchema.required(),
     })
 });
 
@@ -37,9 +37,9 @@ export type RequestVerificationCodeBody = yup.InferType<typeof requestVerificati
 
 export const passResetSchema = yup.object({
     body: yup.object({
-        email:emailSchema.required(),
-        password:passwordSchema.required(),
-        verificationCode:yup.string().required(),
+        email: emailSchema.required(),
+        password: passwordSchema.required(),
+        verificationCode: yup.string().required(),
     })
 });
 
