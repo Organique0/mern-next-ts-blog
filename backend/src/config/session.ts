@@ -1,23 +1,25 @@
-import {SessionOptions} from "express-session";
+import { SessionOptions } from "express-session";
 import env from "../env";
-import MongoStore from "connect-mongo";
+import RedisStore from "connect-redis";
 import crypto from "crypto";
+import redisClient from "./redisClient";
+
 
 const sessionConfig: SessionOptions = {
-    secret:env.SESSION_SECRET,
-    resave:false,
-    saveUninitialized:false,
+    secret: env.SESSION_SECRET,
+    resave: false,
+    saveUninitialized: false,
     cookie: {
-        maxAge: 7*24*60*60*1000,
+        maxAge: 7 * 24 * 60 * 60 * 1000,
     },
-    rolling:true,
-    store: MongoStore.create({
-        mongoUrl: env.MONGO_CONNECTION_STRING
+    rolling: true,
+    store: new RedisStore({
+        client: redisClient,
     }),
     genid(req) {
         const userId = req.user?._id;
         const randomId = crypto.randomUUID();
-        if(userId) {
+        if (userId) {
             return `${userId}-${randomId}`
         } else {
             return randomId;
