@@ -4,7 +4,8 @@
 This is from a paid tutorial from Coding in Flow (https://github.com/codinginflow)
 *********************************************************************************
 
-mogodb, react, express, typescript, bootstrap. There is a new brach where the sessions are stored in a Redis database instead of MongoDB. I just want to keep both since Redis does not have hosting in the cloud.
+mogodb, redis, react, express, typescript, bootstrap. 
+There is a new brach where the sessions are stored in a Redis database instead of MongoDB. I just want to keep both since Redis does not have hosting in the cloud.
 
 The most advanced project I have ever made. I would say that is it well build and scalable.
 The server side is separated and buid using Express.js and other libraries.
