@@ -2,9 +2,9 @@ import * as yup from "yup";
 import { ObjectIdSchema, imageFileSchema } from "../utils/validation";
 
 export const getBlogPostsSchema = yup.object({
-    query:yup.object({
-        authorId:ObjectIdSchema,
-        page:yup.string(),
+    query: yup.object({
+        authorId: ObjectIdSchema,
+        page: yup.string(),
     })
 });
 
@@ -25,20 +25,23 @@ export const createBlogpostSchema = yup.object({
 });
 
 export const updateBlogPostSchema = yup.object({
-    params:yup.object({
+    params: yup.object({
         blogPostId: ObjectIdSchema.required(),
     }),
-    body:blogPostBodySchema,
-    file:imageFileSchema,
+    body: blogPostBodySchema,
+    file: imageFileSchema,
 });
 
 export type updateBlogPostParams = yup.InferType<typeof updateBlogPostSchema>["params"];
 
 export const deleteBlogPostSchema = yup.object({
-    params:yup.object({
+    params: yup.object({
         blogPostId: ObjectIdSchema.required(),
     }),
 });
 
 export type deleteBlogPostParams = yup.InferType<typeof deleteBlogPostSchema>["params"];
 
+export const uploadInPostImageSchema = yup.object({
+    file: imageFileSchema.required("image is required"),
+})

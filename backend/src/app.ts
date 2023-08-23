@@ -19,8 +19,8 @@ app.use(morgan("dev"));
 app.use(express.json());
 
 app.use(cors({
-    origin:env.FRONTEND_URL,
-    credentials:true,
+    origin: env.FRONTEND_URL,
+    credentials: true,
 }));
 
 app.use(session(sessionConfig));
@@ -28,11 +28,12 @@ app.use(passport.authenticate("session"));
 
 app.use("/uploads/featured-images", express.static("uploads/featured-images"));
 app.use("/uploads/profile-pictures", express.static("uploads/profile-pictures"));
+app.use("/uploads/in-post-images", express.static("uploads/in-post-images"));
 
 app.use("/posts", blogPostRoutes);
 app.use("/users", usersRouter);
 
-app.use((req,res,next) => next(createHttpError(404, "Endpoint not found")));
+app.use((req, res, next) => next(createHttpError(404, "Endpoint not found")));
 
 app.use(errorHandler);
 

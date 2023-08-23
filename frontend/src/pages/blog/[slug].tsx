@@ -11,6 +11,8 @@ import useAuthUser from "@/hooks/useAuthUser";
 import { MdEditSquare } from "react-icons/md";
 import useSWR from "swr";
 import BlogCommentSection from "@/components/comments/BlogCommentSection";
+import Markdown from "@/components/Markdown";
+import UserProfileLink from "@/components/UserProfileLink";
 
 export const getStaticPaths: GetStaticPaths = async () => {
     const slugs = await BlogApi.getAllBlogPostSlugs();
@@ -81,13 +83,16 @@ export default function BlogPostPage({ fallbackPost }: BlogPostPage) {
                     <div className="d-flex flex-column align-items-center">
                         <h1 className="text-center mb-3">{title}</h1>
                         <p className="text-center mb-3 h5">{summary}</p>
+                        <p className="d-flex gap-2 align-items-center">
+                            Author: <UserProfileLink user={author} />
+                        </p>
                         <span className="text-muted">{createdUpdatedText}</span>
                         <div className={styles.featuredImageWrapper}>
                             <Image src={featuredImageUrl} fill priority sizes="(max-width: 786px) 100vw, 700px" className="rounded" alt="Blog post featured image" />
                         </div>
                     </div>
                     <div>
-                        {body}
+                        <Markdown>{body}</Markdown>
                     </div>
                 </article>
                 <hr />

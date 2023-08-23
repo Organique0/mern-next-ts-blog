@@ -72,6 +72,13 @@ export async function deleteBlogPost(blogPostId: string) {
     }
 }
 
+export async function uploadInPostImage(file: File) {
+    const formData = new FormData();
+    formData.append("inPostImage", file);
+    const response = await axiosApi.post<{ imageUrl: string }>("/posts/images", formData);
+    return response.data;
+}
+
 export async function getCommentsForBlogPost(blogPostId: string, continueAfterId?: string) {
     const response = await axiosApi.get<CommentsPage>(`/posts/${blogPostId}/comments?${continueAfterId ? "continueAfterId=" + continueAfterId : ""}`);
     return response.data;
