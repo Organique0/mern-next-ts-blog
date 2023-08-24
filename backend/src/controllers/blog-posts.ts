@@ -11,6 +11,8 @@ import { BlogPostBody, GetBlogPostQuery, deleteBlogPostParams, updateBlogPostPar
 import axios from "axios";
 import crypto from "crypto";
 import path from "path";
+import { extname } from 'path';
+import { S3Client, PutObjectCommand, S3ClientConfig } from "@aws-sdk/client-s3";
 import { DeleteCommentParams, GetCommentRepliesParams, GetCommentRepliesQuery, UpdateCommentBody, UpdateCommentParams, createCommentBody, createCommentParams, getCommentsParams, getCommentsQuery } from "../validation/comments";
 
 export const getBlogPosts: RequestHandler<unknown, unknown, unknown, GetBlogPostQuery> = async (req, res, next) => {
@@ -66,6 +68,16 @@ export const getBlogPostBySlug: RequestHandler = async (req, res, next) => {
 }
 
 export const createBlogPost: RequestHandler<unknown, unknown, BlogPostBody, unknown> = async (req, res, next) => {
+    const s3Config: S3ClientConfig = {
+        region: "eu-north-1",
+        credentials: {
+            accessKeyId: env.S3_ACCESS_KEY,
+            secretAccessKey: env.S3_SECRET_ACCESS_KEY,
+        }
+    };
+
+    const s3Client = new S3Client(s3Config);
+
     const { slug, title, summary, body } = req.body;
     const featuredImage = req.file;
     const authUser = req.user;
@@ -80,16 +92,29 @@ export const createBlogPost: RequestHandler<unknown, unknown, BlogPostBody, unkn
 
         const blogPostId = new mongoose.Types.ObjectId();
 
-        const featuredImageDestinationPath = "/uploads/featured-images/" + blogPostId + ".png";
 
-        await sharp(featuredImage.buffer).resize(700, 450).toFile("./" + featuredImageDestinationPath);
+        const processedImageBuffer = await sharp(featuredImage.buffer)
+            .resize(700, 450).jpeg().toBuffer();
+
+        const originalFileExtension = extname(featuredImage.originalname);
+
+        // Upload the image to S3
+        await s3Client.send(
+            new PutObjectCommand({
+                Bucket: "mern-next-ts-blog",
+                Key: blogPostId.toString() + originalFileExtension,
+                Body: processedImageBuffer,
+                ACL: "public-read"
+            })
+        );
+
 
         const newPost = await blogPostModel.create({
             _id: blogPostId,
             slug,
             title,
             summary, body,
-            featuredImageUrl: env.SERVER_URL + featuredImageDestinationPath,
+            featuredImageUrl: `https://mern-next-ts-blog.s3.eu-north-1.amazonaws.com/${blogPostId.toString()}${originalFileExtension}`,
             author: authUser._id
         });
 

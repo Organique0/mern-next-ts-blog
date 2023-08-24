@@ -12,6 +12,7 @@ import sessionConfig from "./config/session";
 import passport from "passport";
 import "./config/passport";
 
+
 const app = express();
 
 app.use(morgan("dev"));
@@ -22,6 +23,7 @@ app.use(cors({
     origin: env.FRONTEND_URL,
     credentials: true,
 }));
+
 
 app.use(session(sessionConfig));
 app.use(passport.authenticate("session"));
