@@ -6,6 +6,8 @@ import { CookieOptions } from "express";
 
 const cookieConfig: CookieOptions = {
     maxAge: 7 * 24 * 60 * 60 * 1000,
+    secure: true,
+    sameSite: "none",
 }
 
 const sessionConfig: SessionOptions = {
@@ -14,6 +16,7 @@ const sessionConfig: SessionOptions = {
     saveUninitialized: false,
     cookie: cookieConfig,
     rolling: true,
+    proxy: true,
     store: MongoStore.create({
         mongoUrl: env.MONGO_CONNECTION_STRING
     }),
