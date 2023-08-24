@@ -6,14 +6,9 @@ import { CookieOptions } from "express";
 
 const cookieConfig: CookieOptions = {
     maxAge: 7 * 24 * 60 * 60 * 1000,
-    secure: true,
     sameSite: "none",
 }
 
-if (env.NODE_ENV === "production") {
-    cookieConfig.secure = true;
-    cookieConfig.sameSite = "none";
-}
 
 const sessionConfig: SessionOptions = {
     secret: env.SESSION_SECRET,
