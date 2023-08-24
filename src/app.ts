@@ -14,19 +14,15 @@ import "./config/passport";
 
 const app = express();
 
-if (env.NODE_ENV === "production") {
-    app.set("trust-proxy", true);
-    app.use(morgan("combined"));
-} else {
-    app.use(morgan("dev"));
-}
-
 app.use(express.json());
 
 app.use(cors({
     origin: env.FRONTEND_URL,
     credentials: true,
 }));
+
+app.set("trust-proxy", true);
+app.use(morgan("combined"));
 
 app.get("/", (req, res) => {
     res.send("hello world");
