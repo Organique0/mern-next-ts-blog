@@ -4,7 +4,7 @@ import env from "./env";
 import dns from "node:dns";
 dns.setDefaultResultOrder("ipv4first");
 
-const port = env.PORT || 5000;
+const port = process.env.PORT || 5000;
 
 mongoose.connect(env.MONGO_CONNECTION_STRING)
     .then(() => {
