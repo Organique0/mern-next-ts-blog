@@ -12,7 +12,10 @@ import sessionConfig from "./config/session";
 import passport from "passport";
 import "./config/passport";
 
+
 const app = express();
+
+app.use(morgan("dev"));
 
 app.use(express.json());
 
@@ -21,12 +24,6 @@ app.use(cors({
     credentials: true,
 }));
 
-app.set("trust-proxy", true);
-app.use(morgan("combined"));
-
-app.get("/", (req, res) => {
-    res.send("hello world");
-});
 
 app.use(session(sessionConfig));
 app.use(passport.authenticate("session"));
@@ -37,7 +34,6 @@ app.use("/uploads/in-post-images", express.static("uploads/in-post-images"));
 
 app.use("/posts", blogPostRoutes);
 app.use("/users", usersRouter);
-
 
 app.use((req, res, next) => next(createHttpError(404, "Endpoint not found")));
 

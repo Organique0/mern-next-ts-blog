@@ -6,12 +6,13 @@ import mongoose from "mongoose";
 import sharp from "sharp";
 import env from "../env";
 import createHttpError from "http-errors";
-import fs from "fs";
 import { BlogPostBody, GetBlogPostQuery, deleteBlogPostParams, updateBlogPostParams } from "../validation/blog-posts";
 import axios from "axios";
 import crypto from "crypto";
-import path from "path";
+import { extname } from 'path';
+import { PutObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { DeleteCommentParams, GetCommentRepliesParams, GetCommentRepliesQuery, UpdateCommentBody, UpdateCommentParams, createCommentBody, createCommentParams, getCommentsParams, getCommentsQuery } from "../validation/comments";
+import s3Client from "../utils/s3";
 
 export const getBlogPosts: RequestHandler<unknown, unknown, unknown, GetBlogPostQuery> = async (req, res, next) => {
     const authorId = req.query.authorId;
@@ -80,16 +81,29 @@ export const createBlogPost: RequestHandler<unknown, unknown, BlogPostBody, unkn
 
         const blogPostId = new mongoose.Types.ObjectId();
 
-        const featuredImageDestinationPath = "/uploads/featured-images/" + blogPostId + ".png";
 
-        await sharp(featuredImage.buffer).resize(700, 450).toFile("./" + featuredImageDestinationPath);
+        const processedImageBuffer = await sharp(featuredImage.buffer)
+            .resize(700, 450).jpeg().toBuffer();
+
+        const originalFileExtension = extname(featuredImage.originalname);
+
+        // Upload the image to S3
+        await s3Client.send(
+            new PutObjectCommand({
+                Bucket: "mern-next-ts-blog",
+                Key: blogPostId.toString() + originalFileExtension,
+                Body: processedImageBuffer,
+                ACL: "public-read"
+            })
+        );
+
 
         const newPost = await blogPostModel.create({
             _id: blogPostId,
             slug,
             title,
             summary, body,
-            featuredImageUrl: env.SERVER_URL + featuredImageDestinationPath,
+            featuredImageUrl: `https://mern-next-ts-blog.s3.eu-north-1.amazonaws.com/${blogPostId.toString()}${originalFileExtension}`,
             author: authUser._id
         });
 
@@ -107,6 +121,8 @@ export const updateBlogPost: RequestHandler<updateBlogPostParams, unknown, BlogP
 
     try {
         assertIsDefined(authenticatedUser);
+
+
 
         const existingSlug = await blogPostModel.findOne({ slug }).exec();
 
@@ -127,10 +143,26 @@ export const updateBlogPost: RequestHandler<updateBlogPostParams, unknown, BlogP
         postToEdit.summary = summary;
         postToEdit.body = body;
 
-        if (featuredImage) {
+        /* if (featuredImage) {
             const featuredImageDestinationPath = "/uploads/featured-images/" + blogPostId + ".png";
             await sharp(featuredImage.buffer).resize(700, 450).toFile("./" + featuredImageDestinationPath);
             postToEdit.featuredImageUrl = env.SERVER_URL + featuredImageDestinationPath + "?lastupdated=" + Date.now();
+        } */
+
+        if (featuredImage) {
+            const processedImageBuffer = await sharp(featuredImage.buffer)
+                .resize(700, 450).jpeg().toBuffer();
+            const originalFileExtension = extname(featuredImage.originalname);
+
+            await s3Client.send(
+                new PutObjectCommand({
+                    Bucket: "mern-next-ts-blog",
+                    Key: blogPostId.toString() + originalFileExtension,
+                    Body: processedImageBuffer,
+                    ACL: "public-read"
+                })
+            );
+            postToEdit.featuredImageUrl = `https://mern-next-ts-blog.s3.eu-north-1.amazonaws.com/${blogPostId.toString()}${originalFileExtension}`;
         }
 
         await postToEdit.save();
@@ -158,10 +190,17 @@ export const deleteBlogPost: RequestHandler<deleteBlogPostParams, unknown, unkno
             throw createHttpError(401);
         }
 
-        if (postToDelete.featuredImageUrl.startsWith(env.SERVER_URL)) {
-            const imagePath = postToDelete.featuredImageUrl.split(env.SERVER_URL)[1].split("?")[0];
-            fs.unlinkSync("." + imagePath);
-        }
+        const originalFileExtension = extname(postToDelete.featuredImageUrl);
+
+        await s3Client.send(new DeleteObjectCommand({
+            Bucket: "mern-next-ts-blog",
+            Key: blogPostId.toString() + originalFileExtension,
+        }));
+
+        /*         if (postToDelete.featuredImageUrl.startsWith(env.SERVER_URL)) {
+                    const imagePath = postToDelete.featuredImageUrl.split(env.SERVER_URL)[1].split("?")[0];
+                    fs.unlinkSync("." + imagePath);
+                } */
 
         await postToDelete.deleteOne();
         //because we are using getStaticProps we need to make a request to the frontend to update posts after deletion or update
@@ -179,11 +218,22 @@ export const uploadInPostImage: RequestHandler = async (req, res, next) => {
         assertIsDefined(image);
 
         const fileName = crypto.randomBytes(20).toString("hex");
-        const imageDestinationPath = "/uploads/in-post-images/" + fileName + path.extname(image.originalname);
 
-        await sharp(image.buffer).resize(1920, undefined, { withoutEnlargement: true }).toFile("./" + imageDestinationPath);
+        const processedImageBuffer = await sharp(image.buffer)
+            .resize(700, 450).jpeg().toBuffer();
+        const originalFileExtension = extname(image.originalname);
+        // Upload the image to S3
+        await s3Client.send(
+            new PutObjectCommand({
+                Bucket: "mern-next-ts-blog",
+                Key: fileName + originalFileExtension,
+                Body: processedImageBuffer,
+                ACL: "public-read"
+            })
+        );
+        const imageUrl = `https://mern-next-ts-blog.s3.eu-north-1.amazonaws.com/${fileName}${originalFileExtension}`;
+        res.status(201).json({ imageUrl: imageUrl });
 
-        res.status(201).json({ imageUrl: env.SERVER_URL + imageDestinationPath });
     } catch (error) {
         next(error);
     }

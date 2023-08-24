@@ -1,7 +1,6 @@
 import { cleanEnv, port, str } from "envalid";
 
 const env = cleanEnv(process.env, {
-    NODE_ENV: str(),
     PORT: port(),
     MONGO_CONNECTION_STRING: str(),
     FRONTEND_URL: str(),
@@ -13,6 +12,8 @@ const env = cleanEnv(process.env, {
     GITHUB_CLIENT_ID: str(),
     GITHUB_CLIENT_SECRET: str(),
     SMTP_PASSWORD: str(),
+    S3_SECRET_ACCESS_KEY: str(),
+    S3_ACCESS_KEY: str(),
 
 });
 
