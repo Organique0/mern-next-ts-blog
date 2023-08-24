@@ -1,1 +1,1 @@
-This is a version of the code that it will be hosted on Heroku
+This is a version of the code that it will be hosted on Heroku: https://next-mern-ts-blog-deca06f16114.herokuapp.com/
