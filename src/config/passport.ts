@@ -9,11 +9,11 @@ import { VerifyCallback } from "passport-oauth2";
 import env from "../env";
 
 passport.serializeUser((user, cb) => {
-    cb(null, user._id)
+    return cb(null, user._id)
 });
 
 passport.deserializeUser((userId: string, cb) => {
-    cb(null, { _id: new mongoose.Types.ObjectId(userId) });
+    return cb(null, { _id: new mongoose.Types.ObjectId(userId) });
 })
 
 passport.use(new LocalStrategy(async (username, password, cb) => {
