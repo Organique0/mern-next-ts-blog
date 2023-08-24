@@ -33,6 +33,7 @@ app.use("/uploads/in-post-images", express.static("uploads/in-post-images"));
 app.use("/posts", blogPostRoutes);
 app.use("/users", usersRouter);
 
+
 app.use((req, res, next) => next(createHttpError(404, "Endpoint not found")));
 
 app.use(errorHandler);
