@@ -23,6 +23,10 @@ app.use(cors({
     credentials: true,
 }));
 
+app.get("/", (req, res) => {
+    res.send("hello world");
+});
+
 app.use(session(sessionConfig));
 app.use(passport.authenticate("session"));
 
