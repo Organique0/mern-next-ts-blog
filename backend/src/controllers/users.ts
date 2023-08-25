@@ -11,18 +11,21 @@ import EmailVerToken from "../models/email-ver-token";
 import * as Email from "../utils/email";
 import passResetToken from "../models/passResetToken";
 import { destroyAllActiveSessionsForUser } from "../utils/auth";
+import s3Client from "../utils/s3";
+import { extname } from 'path';
+import { DeleteObjectCommand, HeadBucketCommandOutput, HeadObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
 interface signUpBody {
     username: string,
-    email:string,
-    password:string,
-    verificationCode:string,
+    email: string,
+    password: string,
+    verificationCode: string,
 }
 
-export const getUserByUsername:RequestHandler = async (req,res,next) => {
+export const getUserByUsername: RequestHandler = async (req, res, next) => {
     try {
-        const user = await UserModel.findOne({username: req.params.username}).exec();
+        const user = await UserModel.findOne({ username: req.params.username }).exec();
 
-        if(!user) throw createHttpError(404, "User not found");
+        if (!user) throw createHttpError(404, "User not found");
 
         res.status(200).json(user);
     } catch (error) {
@@ -30,18 +33,18 @@ export const getUserByUsername:RequestHandler = async (req,res,next) => {
     }
 }
 
-export const requestPasswordResetCode:RequestHandler<unknown,unknown,RequestVerificationCodeBody,unknown> = async (req,res,next) => {
-    const {email} = req.body;
+export const requestPasswordResetCode: RequestHandler<unknown, unknown, RequestVerificationCodeBody, unknown> = async (req, res, next) => {
+    const { email } = req.body;
     try {
-        const user = await UserModel.findOne({email}).collation({locale:"en",strength:2}).exec();
+        const user = await UserModel.findOne({ email }).collation({ locale: "en", strength: 2 }).exec();
 
-        if(!user) {
+        if (!user) {
             throw createHttpError(404, "A user with this email does not exist");
         }
         const verificationCode = crypto.randomInt(100000, 999999).toString();
-        await passResetToken.create({email,verificationCode});
+        await passResetToken.create({ email, verificationCode });
 
-        await Email.sendPassResetCode(email,verificationCode);
+        await Email.sendPassResetCode(email, verificationCode);
 
         res.sendStatus(200);
 
@@ -50,18 +53,18 @@ export const requestPasswordResetCode:RequestHandler<unknown,unknown,RequestVeri
     }
 }
 
-export const resetPassword: RequestHandler<unknown,unknown,passResetBody, unknown> = async (req, res, next) => {
-    const {email, password:newPasswordRaw, verificationCode} = req.body;
+export const resetPassword: RequestHandler<unknown, unknown, passResetBody, unknown> = async (req, res, next) => {
+    const { email, password: newPasswordRaw, verificationCode } = req.body;
     try {
-        const existingUser = await UserModel.findOne({email}).select("+email").collation({locale:"en", strength:2}).exec();
+        const existingUser = await UserModel.findOne({ email }).select("+email").collation({ locale: "en", strength: 2 }).exec();
 
-        if(!existingUser) {
-            throw createHttpError(404,"User not found");
+        if (!existingUser) {
+            throw createHttpError(404, "User not found");
         }
 
-        const passwordResetToken = await passResetToken.findOne({email, verificationCode}).exec();
+        const passwordResetToken = await passResetToken.findOne({ email, verificationCode }).exec();
 
-        if(!passwordResetToken) {
+        if (!passwordResetToken) {
             throw createHttpError(400, "verification code incorrect or expired");
         } else {
             await passwordResetToken.deleteOne();
@@ -78,8 +81,8 @@ export const resetPassword: RequestHandler<unknown,unknown,passResetBody, unknow
         const user = existingUser.toObject();
         delete user.password;
 
-        req.logIn(user,error => {
-            if(error) throw error;
+        req.logIn(user, error => {
+            if (error) throw error;
             res.status(200).json(user);
         });
 
@@ -88,19 +91,19 @@ export const resetPassword: RequestHandler<unknown,unknown,passResetBody, unknow
     }
 }
 
-export const requestVerificationCode:RequestHandler<unknown,unknown,RequestVerificationCodeBody,unknown> = async (req,res,next) => {
-    const {email} = req.body;
+export const requestVerificationCode: RequestHandler<unknown, unknown, RequestVerificationCodeBody, unknown> = async (req, res, next) => {
+    const { email } = req.body;
 
     try {
-        const existingEmail = await UserModel.findOne({email}).collation({locale:"en", strength:2}).exec();
+        const existingEmail = await UserModel.findOne({ email }).collation({ locale: "en", strength: 2 }).exec();
 
-        if(existingEmail) {
+        if (existingEmail) {
             throw createHttpError(409, "A user with this email address already exists. Please log in instead.")
         }
 
         const verificationCode = crypto.randomInt(100000, 999999).toString();
 
-        await EmailVerToken.create({email, verificationCode});
+        await EmailVerToken.create({ email, verificationCode });
 
         await Email.sendVerificationCode(email, verificationCode)
 
@@ -110,46 +113,46 @@ export const requestVerificationCode:RequestHandler<unknown,unknown,RequestVerif
     }
 }
 
-export const signUp: RequestHandler<unknown, unknown, signUpBody, unknown> = async (req,res,next) => {
-    const {username, email, password, verificationCode} = req.body;
+export const signUp: RequestHandler<unknown, unknown, signUpBody, unknown> = async (req, res, next) => {
+    const { username, email, password, verificationCode } = req.body;
     try {
-        const existingUsername = await UserModel.findOne({username}).collation({ locale: "en", strength:2 }).exec();
+        const existingUsername = await UserModel.findOne({ username }).collation({ locale: "en", strength: 2 }).exec();
 
-        if(existingUsername) {
+        if (existingUsername) {
             throw createHttpError(409, "username taken");
         }
 
-        const emailVerToken = await EmailVerToken.findOne({email, verificationCode}).exec();
+        const emailVerToken = await EmailVerToken.findOne({ email, verificationCode }).exec();
 
-        if(!emailVerToken) {
+        if (!emailVerToken) {
             throw createHttpError(400, "verification code incorrect or expired");
         } else {
             await emailVerToken.deleteOne();
         }
 
-        const passwordHashed = await bcrypt.hash(password,10);
+        const passwordHashed = await bcrypt.hash(password, 10);
 
         const result = await UserModel.create({
             username,
             displayName: username,
             email,
-            password:passwordHashed,
+            password: passwordHashed,
         });
 
         const newUser = result.toObject();
         delete newUser.password;
 
-        req.logIn(newUser,error => {
-            if(error) throw error;
+        req.logIn(newUser, error => {
+            if (error) throw error;
             res.status(201).json(newUser);
         });
-        
+
     } catch (error) {
         next(error);
     }
 }
 
-export const getAuthenticatedUser:RequestHandler = async (req, res, next) => {
+export const getAuthenticatedUser: RequestHandler = async (req, res, next) => {
     const authUser = req.user;
     try {
         assertIsDefined(authUser);
@@ -162,14 +165,14 @@ export const getAuthenticatedUser:RequestHandler = async (req, res, next) => {
     }
 }
 
-export const logOut: RequestHandler = (req,res) => {
+export const logOut: RequestHandler = (req, res) => {
     req.logOut(error => {
         if (error) throw error;
         res.sendStatus(200);
     })
 }
 
-export const updateUser :RequestHandler<unknown, unknown, UpdateUserBody, unknown> = async (req,res,next) => {
+export const updateUser: RequestHandler<unknown, unknown, UpdateUserBody, unknown> = async (req, res, next) => {
     const { username, displayName, about } = req.body;
     const profileImage = req.file;
     const authUser = req.user;
@@ -177,30 +180,61 @@ export const updateUser :RequestHandler<unknown, unknown, UpdateUserBody, unknow
     try {
         assertIsDefined(authUser);
 
-        if(username){
-            const existingUsername = await UserModel.findOne({username}).collation({ locale: "en", strength:2 }).exec();
+        if (username) {
+            const existingUsername = await UserModel.findOne({ username }).collation({ locale: "en", strength: 2 }).exec();
 
-            if(existingUsername) {
+            if (existingUsername) {
                 throw createHttpError(409, "username taken");
             }
         }
 
-        let profileImageDestPath:string | undefined = undefined;
+        let originalFileExtension = undefined; //bad fix to access this out of the if statement
 
-        if(profileImage) {
-            profileImageDestPath = "/uploads/profile-pictures/" + authUser._id + ".png";
+        if (profileImage) {
+            const processedImageBuffer = await sharp(profileImage.buffer)
+                .resize(500, 500, { withoutEnlargement: true, fit: "cover" }).toBuffer();
 
-            await sharp(profileImage.buffer).resize(500,500, { withoutEnlargement: true }).toFile("./" + profileImageDestPath);
+            originalFileExtension = extname(profileImage.originalname);
+
+            try {
+                await s3Client.send(new HeadObjectCommand({
+                    Bucket: 'mern-next-ts-blog',
+                    Key: authUser._id + originalFileExtension,
+                }));
+                await s3Client.send(new DeleteObjectCommand({
+                    Bucket: "mern-next-ts-blog",
+                    Key: authUser._id + originalFileExtension,
+                }));
+                await s3Client.send(
+                    new PutObjectCommand({
+                        Bucket: 'mern-next-ts-blog',
+                        Key: authUser._id + originalFileExtension,
+                        Body: processedImageBuffer,
+                        ACL: 'public-read',
+                    })
+                );
+            } catch (error: any) {
+                if (error.$metadata.httpStatusCode === 404) {
+                    await s3Client.send(
+                        new PutObjectCommand({
+                            Bucket: 'mern-next-ts-blog',
+                            Key: authUser._id + originalFileExtension,
+                            Body: processedImageBuffer,
+                            ACL: 'public-read',
+                        })
+                    );
+                }
+            }
         }
 
         const updatedUser = await UserModel.findByIdAndUpdate(authUser._id, {
             $set: {
-                ...(username && {username}),
-                ...(displayName && {displayName}),
-                ...(about && {about}),
-                ...(profileImage && {profilePicUrl:env.SERVER_URL + profileImageDestPath + "?lastUpdated=" + Date.now()}),
+                ...(username && { username }),
+                ...(displayName && { displayName }),
+                ...(about && { about }),
+                ...(profileImage && { profilePicUrl: `https://mern-next-ts-blog.s3.eu-north-1.amazonaws.com/${authUser._id}${originalFileExtension}` }),
             }
-        }, { new:true }).exec();
+        }, { new: true }).exec();
 
         res.status(200).json(updatedUser);
 

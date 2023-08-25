@@ -6,13 +6,11 @@ import mongoose from "mongoose";
 import sharp from "sharp";
 import env from "../env";
 import createHttpError from "http-errors";
-import fs from "fs";
 import { BlogPostBody, GetBlogPostQuery, deleteBlogPostParams, updateBlogPostParams } from "../validation/blog-posts";
 import axios from "axios";
 import crypto from "crypto";
-import path from "path";
 import { extname } from 'path';
-import { PutObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
+import { PutObjectCommand, DeleteObjectCommand, HeadObjectCommand } from "@aws-sdk/client-s3";
 import { DeleteCommentParams, GetCommentRepliesParams, GetCommentRepliesQuery, UpdateCommentBody, UpdateCommentParams, createCommentBody, createCommentParams, getCommentsParams, getCommentsQuery } from "../validation/comments";
 import s3Client from "../utils/s3";
 
@@ -89,15 +87,35 @@ export const createBlogPost: RequestHandler<unknown, unknown, BlogPostBody, unkn
 
         const originalFileExtension = extname(featuredImage.originalname);
 
-        // Upload the image to S3
-        await s3Client.send(
-            new PutObjectCommand({
+        try {
+            await s3Client.send(new HeadObjectCommand({
+                Bucket: 'mern-next-ts-blog',
+                Key: blogPostId.toString() + originalFileExtension,
+            }));
+            await s3Client.send(new DeleteObjectCommand({
                 Bucket: "mern-next-ts-blog",
                 Key: blogPostId.toString() + originalFileExtension,
-                Body: processedImageBuffer,
-                ACL: "public-read"
-            })
-        );
+            }));
+            await s3Client.send(
+                new PutObjectCommand({
+                    Bucket: 'mern-next-ts-blog',
+                    Key: blogPostId.toString() + originalFileExtension,
+                    Body: processedImageBuffer,
+                    ACL: 'public-read',
+                })
+            );
+        } catch (error: any) {
+            if (error.$metadata.httpStatusCode === 404) {
+                await s3Client.send(
+                    new PutObjectCommand({
+                        Bucket: 'mern-next-ts-blog',
+                        Key: blogPostId.toString() + originalFileExtension,
+                        Body: processedImageBuffer,
+                        ACL: 'public-read',
+                    })
+                );
+            }
+        }
 
 
         const newPost = await blogPostModel.create({
