@@ -7,6 +7,7 @@ This is from a paid tutorial from Coding in Flow (https://github.com/codinginflo
 mogodb, react, express, typescript, bootstrap. 
 
 There is another branch made to be used as a standalone api server hoster on Heroku.
+update: I have switched hosting from Heroku to Microsoft Azure.
 
 The most advanced project I have ever made. I would say that is it well build and scalable.
 The server side is separated and buid using Express.js and other libraries.
