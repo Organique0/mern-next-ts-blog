@@ -8,7 +8,6 @@ mogodb, redis, react, express, typescript, bootstrap.
 
 There is a new brach where the sessions are stored in a Redis database instead of MongoDB. I just want to keep both.
 
-
 There is another branch made to be used as a standalone api server hoster on Heroku.
 
 The most advanced project I have ever made. I would say that is it well build and scalable.
